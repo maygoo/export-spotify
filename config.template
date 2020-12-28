@@ -1,0 +1,11 @@
+# contains api authentication info
+# fill in details for 'client_id' and 'client_secret'
+# leave 'user_auth' and 'user_refresh' null unless you know what you're doing
+# rename file to `config.json`
+# delete these comments
+{
+    "client_id" : "",
+    "client_secret" : "",
+    "user_auth" : null,
+    "user_refresh" : null
+}
