@@ -32,6 +32,7 @@ class SpotifyApi:
 
         # no need to authenticate if tokens exist
         if self.user_refresh or self.user_auth:
+            print(f"Successfully loaded user auth from {self.config_file}")
             return True
 
         endpoint = '/authorize'
@@ -47,10 +48,18 @@ class SpotifyApi:
 
         response_type = 'code' # required
 
-        query = f'?client_id={self.client_id}&response_type={response_type}&redirect_uri={SpotifyApi.redirect}&scope={" ".join(scopes)}'
+        query = {
+            'client_id' : self.client_id,
+            'response_type' : response_type,
+            'redirect_uri' : SpotifyApi.redirect,
+            'scope' : '+'.join(scopes)
+        }
+
+        query = '&'.join([f'{key}={query[key]}' for key in query.keys()])
+
         print("Initial authentication required")
         print(f"Opening up a browser (if nothing happens for a few moments, please manually visit the url: {SpotifyApi.auth_url+endpoint+query}")
-        webbrowser.open(SpotifyApi.auth_url+endpoint+query)
+        webbrowser.open(SpotifyApi.auth_url+endpoint+'?'+query)
         print("Please sign in to your spotify account and allow the permissions")
         print("You will be redirected to a page that is unable to load")
         self.user_auth = input("Please copy the url of this page, and paste the part after 'code=' here:\n")
@@ -60,7 +69,10 @@ class SpotifyApi:
             "client_id" : self.client_id,
             "client_secret" : self.client_secret,
             "user_auth" : self.user_auth,
-            "user_refresh" : self.user_refresh}
+            "user_refresh" : self.user_refresh
+        }
+
+        # assume auth succeeds
 
         try:
             with open(self.config_file, 'w') as f:
@@ -68,6 +80,8 @@ class SpotifyApi:
         except:
             print(f"Unable to save your config file. Please manually enter the auth code {self.user_auth} in {self.config_file}")
             return False
+
+        print(f"Successfully saved auth to {self.config_file}")
 
         self.refresh()
         return True
@@ -78,10 +92,20 @@ class SpotifyApi:
 
         body = {
             'grant_type' : 'authorization_code',
-            'code' : self.user_auth,
-            'edirect_uri' : SpotifyApi.redirect,
+            'code' : self.user_auth,                # authorisation code or refresh key if one exists
+            'redirect_uri' : SpotifyApi.redirect,   
             'client_id' : self.client_id,
-            'client_secret' : self.client_secret}
+            'client_secret' : self.client_secret
+        }
+
+        headers = {}
+
+        #response = requests.request('POST', self.auth_url, data=body, headers=headers)
+
+        #print(response.status_code)
+        #print(response.text)
+
+
 
         # POST
 
