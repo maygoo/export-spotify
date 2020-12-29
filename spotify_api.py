@@ -1,6 +1,7 @@
 import requests
 import webbrowser
 import json
+import datetime
 
 # handles api requests
 
@@ -16,6 +17,8 @@ class SpotifyApi:
         self.user_auth = None
         self.user_refresh = None
         self.user_access = None
+        # internal timer kept for refresh key
+        self.expires = None
 
     # requests a user authorisation code, prompts user to login
     def auth(self):
@@ -107,6 +110,10 @@ class SpotifyApi:
         content = json.loads(response.content)
         self.user_refresh = content['refresh_token']
 
+        # get new refresh key 1 minute before it expires
+        duration = datetime.timedelta(seconds=int(content['expires_in']) - 60)
+        self.expires = datetime.datetime.now() + duration
+
         if not self.save_config(): return False
         return True
 
@@ -125,5 +132,9 @@ class SpotifyApi:
             print(f"Unable to save your config file. Please manually enter the auth code {self.user_auth} in {self.config_file}")
             return False
         return True
+
+    # true if we should get a new refresh key
+    def get_new_key(self):
+        return True if self.expires is None else (datetime.datetime.now() > self.expires)
 
 # each api call should check if the access key has expired and get a new one if it has
