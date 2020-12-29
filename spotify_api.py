@@ -66,7 +66,7 @@ class SpotifyApi:
             with open(self.config_file, 'w') as f:
                 json.dump(config, f)
         except:
-            print(f"Unable to save your config file. Please manually enter the auth code {self.user_auth} to config.json")
+            print(f"Unable to save your config file. Please manually enter the auth code {self.user_auth} in {self.config_file}")
             return False
 
         self.refresh()
@@ -85,4 +85,4 @@ class SpotifyApi:
 
         # POST
 
-# each api call should 
+# each api call should check if the access key has expired and get a new one if it has
