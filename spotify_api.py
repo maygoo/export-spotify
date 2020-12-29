@@ -62,9 +62,55 @@ class SpotifyApi:
         webbrowser.open(SpotifyApi.auth_url+endpoint+'?'+query)
         print("Please sign in to your spotify account and allow the permissions")
         print("You will be redirected to a page that is unable to load")
-        self.user_auth = input("Please copy the url of this page, and paste the part after 'code=' here:\n")
+        self.user_auth = input("Please copy the url of this page, and paste the part after 'https://localhost/?code=code=' here:\n")
         print("This authorisation code is being saved to your config file")
 
+        # assume auth succeeds
+
+        if not self.save_config(): return False
+
+        print(f"Successfully saved auth to {self.config_file}")
+
+        return self.refresh()
+
+    # requests new access and refresh tokens
+    def refresh(self):
+        endpoint = '/api/token'
+
+        refresh = bool(self.user_refresh)
+
+        # can get access token from initial auth code or from refresh code
+
+        body = {
+            'client_id' : self.client_id,
+            'client_secret' : self.client_secret
+        }
+
+        if refresh:
+            body['grant_type'] = 'refresh_token'
+            body['refresh_token'] = self.user_refresh
+        else:
+            body['grant_type'] = 'authorization_code'
+            body['code'] = self.user_auth
+            body['redirect_uri'] = SpotifyApi.redirect
+
+        response = requests.request('POST', self.auth_url+endpoint, data=body)
+
+        print(response.status_code)
+        print(response.text)
+
+        if not response.ok:
+            print(response.status_code, response.text)
+            print("Unable to obtain refresh key")
+            return False
+        
+        content = json.loads(response.content)
+        self.user_refresh = content['refresh_token']
+
+        if not self.save_config(): return False
+        return True
+
+    def save_config(self):
         config = {
             "client_id" : self.client_id,
             "client_secret" : self.client_secret,
@@ -72,41 +118,12 @@ class SpotifyApi:
             "user_refresh" : self.user_refresh
         }
 
-        # assume auth succeeds
-
         try:
             with open(self.config_file, 'w') as f:
                 json.dump(config, f)
         except:
             print(f"Unable to save your config file. Please manually enter the auth code {self.user_auth} in {self.config_file}")
             return False
-
-        print(f"Successfully saved auth to {self.config_file}")
-
-        self.refresh()
         return True
-
-    # requests new access and refresh tokens
-    def refresh(self):
-        endpoint = '/api/token'
-
-        body = {
-            'grant_type' : 'authorization_code',
-            'code' : self.user_auth,                # authorisation code or refresh key if one exists
-            'redirect_uri' : SpotifyApi.redirect,   
-            'client_id' : self.client_id,
-            'client_secret' : self.client_secret
-        }
-
-        headers = {}
-
-        #response = requests.request('POST', self.auth_url, data=body, headers=headers)
-
-        #print(response.status_code)
-        #print(response.text)
-
-
-
-        # POST
 
 # each api call should check if the access key has expired and get a new one if it has
