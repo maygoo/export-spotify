@@ -21,7 +21,7 @@ class SpotifyApi:
         self.expires = None
 
     # requests a user authorisation code, prompts user to login
-    def auth(self):
+    def auth(self, force=False):
         try:
             with open(self.config_file, 'r') as f:
                 config = json.load(f)
@@ -34,7 +34,7 @@ class SpotifyApi:
             return False
 
         # no need to authenticate if tokens exist
-        if self.user_refresh or self.user_auth:
+        if not force and (self.user_refresh or self.user_auth):
             print(f"Successfully loaded user auth from {self.config_file}")
             return True
 
@@ -42,6 +42,7 @@ class SpotifyApi:
 
         scopes = [
             'user-read-email',              # used to categorise song by spotify account
+            'user-read-private',            # used to get user explicit content settings
             'playlist-read-private',        # used to get list of songs in playlists
             'user-library-read',            # used to get list of 'your music'/liked songs
             'playlist-read-collaborative']  # used to get list of songs in shared playlists
@@ -141,3 +142,27 @@ class SpotifyApi:
 
         return requests.request(method, self.api_url+endpoint, headers=headers, **kwargs)
 
+###
+###  implementation of spotify functions
+###
+
+## user profile
+# todo create and return user objects 
+
+    # Get detailed profile information about the current user (including the current user’s username).
+    # scopes used:  user-read-email     (opt)
+    #               user-read-private   (opt)
+    def me(self):
+        endpoint = '/v1/me'
+
+        response = self.auth_request('GET', endpoint)
+
+        return endpoint, response
+
+    # Get public profile information about a Spotify user.
+    def user(self, user_id):
+        endpoint = f'/v1/users/{user_id}'
+
+        response = self.auth_request('GET', endpoint)
+
+        return endpoint, response
