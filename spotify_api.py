@@ -149,7 +149,13 @@ class SpotifyApi:
             'Authorization' : f'Bearer {self._user_access}'
         }
 
-        return requests.request(method, self._api_url+endpoint, headers=headers, **kwargs)
+        response = requests.request(method, self._api_url+endpoint, headers=headers, **kwargs)
+
+        if not response.ok:
+            print(f"Error: Call to {endpoint} returned with status code {response.status_code}. Full response:\n{response.text}")
+            return False
+
+        return response
 
 ###
 ###  implementation of spotify functions
@@ -194,7 +200,20 @@ class SpotifyApi:
 # Save Albums for Current User
 # Remove Albums for Current User
 # Check User's Saved Albums
-# Get User's Saved Tracks
+
+    # Get a list of the songs saved in the current Spotify user’s ‘Your Music’ library.
+    # scopes used:  user-library-read
+    def get_library(self, offset):
+        endpoint = '/v1/me/tracks'
+
+        query = {
+            'offset' : offset
+        }
+
+        response = self._auth_request('GET', endpoint, query=query)
+
+        return response if response else False
+
 # Save Tracks for User
 # Remove User's Saved Tracks
 # Check User's Saved Tracks
@@ -251,7 +270,6 @@ class SpotifyApi:
 # Get Audio Analysis for a Track
 
 ## user profile
-# todo create and return user objects 
 
     # Get detailed profile information about the current user (including the current user’s username).
     # scopes used:  user-read-email     (opt)
@@ -261,11 +279,7 @@ class SpotifyApi:
 
         response = self._auth_request('GET', endpoint)
 
-        if not response.ok:
-            print(f"Error: Call to {endpoint} returned with status code {response.status_code}. Full response:\n{response.text}")
-            return False
-
-        return so.User(**json.loads(response.content))
+        return so.User(**json.loads(response.content)) if response else False
 
     # Get public profile information about a Spotify user.
     def get_user(self, user_id):
@@ -273,8 +287,4 @@ class SpotifyApi:
 
         response = self._auth_request('GET', endpoint)
 
-        if not response.ok:
-            print(f"Error: Call to {endpoint} returned with status code {response.status_code}. Full response:\n{response.text}")
-            return False
-
-        return so.User(**json.loads(response.content))
+        return so.User(**json.loads(response.content)) if response else False
