@@ -108,7 +108,8 @@ class SpotifyApi:
             return False
         
         content = json.loads(response.content)
-        self.user_refresh = content['refresh_token']
+        if not refresh: self.user_refresh = content['refresh_token']
+        self.user_access = content['access_token']
 
         # get new refresh key 1 minute before it expires
         duration = datetime.timedelta(seconds=int(content['expires_in']) - 60)
