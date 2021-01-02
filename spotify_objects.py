@@ -23,17 +23,15 @@ class ExplicitContentSettings:
 
 # ExternalIdObject
 
-class ExternalURL:
+class ExternalUrl:
     def __init__(self, **kwargs):
-        self.type = list(kwargs)[0]
-        self.url = kwargs[self.type]
-
-        # all examples I have seen only have the single url
-        # if not...
         self.urls = kwargs
 
     def __str__(self):
-        return self.url
+        s = ''
+        for key, value in self.urls.items():
+            s += f'{key}:\t\t{value}\n'
+        return s
 
 class Followers:
     def __init__(self, *, href, total):
@@ -41,9 +39,19 @@ class Followers:
         self.total = int(total)
 
     def __str__(self):
-        return f'No.: {self.total}'
+        return f'No. followers: {self.total}'
 
-# PagingObject
+# assumes all paged items are saved track objects
+class Paging:
+    def __init__(self, *, href, items, limit, offset, previous, total, **kwargs):
+        self.href = href
+        self.items = [SavedTrack(**item) for item in items]
+        self.limit = limit
+        self.next = kwargs['next']
+        self.offset = offset
+        self.previous = previous
+        self.total = total
+
 # PlayHistoryObject
 # PlaylistObject
 # PlaylistTrackObject
@@ -52,7 +60,7 @@ class User:
     def __init__(self, *, display_name, external_urls, followers, href, images, uri, country=None, email=None, explicit_content={'filter_enabled':None,'filter_locked':None}, product=None, **kwargs):
         # public attributes
         self.display_name = display_name
-        self.external_urls = ExternalURL(**external_urls)
+        self.external_urls = ExternalUrl(**external_urls)
         self.followers = Followers(**followers)
         self.href = href
         self.id = kwargs['id'] # if only we can unpack to id_ or something..
@@ -60,7 +68,7 @@ class User:
         self.type = kwargs['type']
         self.uri = uri
         # private attributes (requires scopes)
-        self.country = country  # user-read-private
+        self.country = country  # only if user-read-private
         self.email = email  # user-read-email
         self.explicit_content = ExplicitContentSettings(**explicit_content) # user-read-private
         self.product = product  # user-read-private
@@ -69,6 +77,7 @@ class User:
         s = ''
         for attr, value in vars(self).items():
             s += f"{attr}:\t\t{value}\n"
+
         return s
 
 # RecommendationSeedObject
@@ -76,12 +85,59 @@ class User:
 # ResumePointObject
 # SavedAlbumObject
 # SavedShowObject
-# SavedTrackObject
+
+class SavedTrack:
+    def __init__(self, *, added_at, track):
+        self.added_at = added_at
+        self.track = Track(**track)
+
+    def __str__(self):
+        return f'Saved {self.track} at {self.added_at}'
+
 # ShowObject
-# SimplifiedAlbumObject
+
+class SimplifiedAlbum:
+    def __init__(self, *, album_group=None, album_type, artists, available_markets, external_urls, href, images, name, restrictions=None, uri, **kwargs):
+        self.album_group = album_group
+        self.album_type = album_type
+        self.artists = artists # TODO array of simplified artist object
+        self.available_markets = available_markets
+        self.external_urls = ExternalUrl(**external_urls)
+        self.href = href
+        self.id = kwargs['id']
+        self.images = images # unimplemented
+        self.restrictions = restrictions # TODO restriction object / only when restriction is applied
+        self.type = kwargs['type']
+        self.uri = uri
+
 # SimplifiedEpisodeObject
 # SimplifiedShowObject
 # SimplifiedTrackObject
-# TrackObject
+
+class Track:
+    def __init__(self, *, album, artists, available_markets, disc_number, duration_ms, explicit, external_ids, external_urls, href, is_playable=None, linked_from=None, name, popularity, preview_url, restrictions=None, track_number, uri, **kwargs):
+        self.album = SimplifiedAlbum(**album)
+        self.artists = artists # TODO array of artist objects
+        self.available_markets = available_markets
+        self.disc_number = disc_number
+        self.duration_ms = duration_ms
+        self.explicit = explicit
+        self.external_ids = external_ids # TODO external id object
+        self.external_urls = ExternalUrl(**external_urls)
+        self.href = href
+        self.id = kwargs['id']
+        self.is_playable = is_playable # only if track linking is applied
+        self.linked_from = linked_from # ^
+        self.name = name
+        self.popularity = popularity
+        self.preview_url = preview_url
+        self.restrictions = restrictions # TODO restriction object / only if restrictions is enabled
+        self.track_number = track_number
+        self.type = kwargs['type']
+        self.uri = uri
+
+    def __str__(self):
+        return f'{self.name} by {self.artists} available at {self.external_urls}'
+
 # TrackRestrictionObject
 # TuneableTrackObject

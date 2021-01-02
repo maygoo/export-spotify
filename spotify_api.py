@@ -203,16 +203,21 @@ class SpotifyApi:
 
     # Get a list of the songs saved in the current Spotify user’s ‘Your Music’ library.
     # scopes used:  user-library-read
-    def get_library(self, offset):
+    def get_library(self, offset=0, limit=50):
         endpoint = '/v1/me/tracks'
 
         query = {
-            'offset' : offset
+            'offset' : offset,
+            'limit' : limit
         }
 
-        response = self._auth_request('GET', endpoint, query=query)
+        response = self._auth_request('GET', endpoint, params=query)
 
-        return response if response else False
+        return so.Paging(**json.loads(response.content)) if response else False
+        
+
+# returns an array of saved track objects
+# wrapped in a paging object
 
 # Save Tracks for User
 # Remove User's Saved Tracks
