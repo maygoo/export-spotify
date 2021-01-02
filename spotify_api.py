@@ -99,9 +99,6 @@ class SpotifyApi:
 
         response = requests.request('POST', self.auth_url+endpoint, data=body)
 
-        print(response.status_code)
-        print(response.text)
-
         if not response.ok:
             print(response.status_code, response.text)
             print("Unable to obtain refresh key")
@@ -115,7 +112,7 @@ class SpotifyApi:
         duration = datetime.timedelta(seconds=int(content['expires_in']) - 60)
         self.expires = datetime.datetime.now() + duration
 
-        if not self.save_config(): return False
+        if not refresh and not self.save_config(): return False
         return True
 
     def save_config(self):
@@ -134,8 +131,13 @@ class SpotifyApi:
             return False
         return True
 
-    # true if we should get a new refresh key
-    def get_new_key(self):
-        return True if self.expires is None else (datetime.datetime.now() > self.expires)
+    # request wrapper function to add access key refresh when needed
+    def auth_request(self, method, endpoint, **kwargs):
+        if True if self.expires is None else (datetime.datetime.now() > self.expires): self.refresh()
 
-# each api call should check if the access key has expired and get a new one if it has
+        headers = {
+            'Authorization' : f'Bearer {self.user_access}'
+        }
+
+        return requests.request(method, self.api_url+endpoint, headers=headers, **kwargs)
+
