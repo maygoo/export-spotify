@@ -2,23 +2,25 @@ import requests
 import webbrowser
 import json
 import datetime
+import spotify_objects as so
 
 # handles api requests
 
 class SpotifyApi:
-    api_url = 'https://api.spotify.com'
-    auth_url = 'https://accounts.spotify.com'
-    redirect = 'https://localhost/' # fix later
+    _api_url = 'https://api.spotify.com'
+    _auth_url = 'https://accounts.spotify.com'
+    _redirect = 'https://localhost/' # fix later
 
     def __init__(self, config_file):
-        self.config_file = config_file
-        self.client_id = None
-        self.client_secret = None
-        self.user_auth = None
-        self.user_refresh = None
-        self.user_access = None
+        self._config_file = config_file
+        self._client_id = None
+        self._client_secret = None
+        self._user_auth = None
+        self._user_refresh = None
+        self._user_access = None
         # internal timer kept for refresh key
-        self.expires = None
+        self._expires = None
+
 ###
 ### oauth2 flow
 ###
@@ -26,19 +28,19 @@ class SpotifyApi:
     # requests a user authorisation code, prompts user to login
     def auth(self, force=False):
         try:
-            with open(self.config_file, 'r') as f:
+            with open(self._config_file, 'r') as f:
                 config = json.load(f)
-                self.client_id = config['client_id']
-                self.client_secret = config['client_secret']
-                self.user_auth = config['user_auth']
-                self.user_refresh = config['user_refresh']
+                self._client_id = config['client_id']
+                self._client_secret = config['client_secret']
+                self._user_auth = config['user_auth']
+                self._user_refresh = config['user_refresh']
         except:
-            print(f"Unable to read config file '{self.config_file}'")
+            print(f"Unable to read config file '{self._config_file}'")
             return False
 
         # no need to authenticate if tokens exist
-        if not force and (self.user_refresh or self.user_auth):
-            print(f"Successfully loaded user auth from {self.config_file}")
+        if not force and (self._user_refresh or self._user_auth):
+            print(f"Successfully loaded user auth from {self._config_file}")
             return True
 
         endpoint = '/authorize'
@@ -56,52 +58,52 @@ class SpotifyApi:
         response_type = 'code' # required
 
         query = {
-            'client_id' : self.client_id,
+            'client_id' : self._client_id,
             'response_type' : response_type,
-            'redirect_uri' : SpotifyApi.redirect,
+            'redirect_uri' : SpotifyApi._redirect,
             'scope' : '+'.join(scopes)
         }
 
         query = '&'.join([f'{key}={query[key]}' for key in query.keys()])
 
         print("Initial authentication required")
-        print(f"Opening up a browser (if nothing happens for a few moments, please manually visit the url: {SpotifyApi.auth_url+endpoint+query}")
-        webbrowser.open(SpotifyApi.auth_url+endpoint+'?'+query)
+        print(f"Opening up a browser (if nothing happens for a few moments, please manually visit the url: {SpotifyApi._auth_url+endpoint+query}")
+        webbrowser.open(SpotifyApi._auth_url+endpoint+'?'+query)
         print("Please sign in to your spotify account and allow the permissions")
         print("You will be redirected to a page that is unable to load")
-        self.user_auth = input("Please copy the url of this page, and paste the part after 'https://localhost/?code=code=' here:\n")
+        self._user_auth = input("Please copy the url of this page, and paste the part after 'https://localhost/?code=code=' here:\n")
         print("This authorisation code is being saved to your config file")
 
         # assume auth succeeds
 
-        if not self.save_config(): return False
+        if not self._save_config(): return False
 
-        print(f"Successfully saved auth to {self.config_file}")
+        print(f"Successfully saved auth to {self._config_file}")
 
-        return self.refresh()
+        return self._refresh()
 
     # requests new access and refresh tokens
-    def refresh(self):
+    def _refresh(self):
         endpoint = '/api/token'
 
-        refresh = bool(self.user_refresh)
+        refresh = bool(self._user_refresh)
 
         # can get access token from initial auth code or from refresh code
 
         body = {
-            'client_id' : self.client_id,
-            'client_secret' : self.client_secret
+            'client_id' : self._client_id,
+            'client_secret' : self._client_secret
         }
 
         if refresh:
             body['grant_type'] = 'refresh_token'
-            body['refresh_token'] = self.user_refresh
+            body['refresh_token'] = self._user_refresh
         else:
             body['grant_type'] = 'authorization_code'
-            body['code'] = self.user_auth
-            body['redirect_uri'] = SpotifyApi.redirect
+            body['code'] = self._user_auth
+            body['redirect_uri'] = SpotifyApi._redirect
 
-        response = requests.request('POST', self.auth_url+endpoint, data=body)
+        response = requests.request('POST', self._auth_url+endpoint, data=body)
 
         if not response.ok:
             print(response.status_code, response.text)
@@ -109,30 +111,30 @@ class SpotifyApi:
             return False
         
         content = json.loads(response.content)
-        if not refresh: self.user_refresh = content['refresh_token']
-        self.user_access = content['access_token']
+        if not refresh: self._user_refresh = content['refresh_token']
+        self._user_access = content['access_token']
 
         # get new refresh key 1 minute before it expires
         duration = datetime.timedelta(seconds=int(content['expires_in']) - 60)
-        self.expires = datetime.datetime.now() + duration
+        self._expires = datetime.datetime.now() + duration
 
-        if not refresh and not self.save_config(): return False
+        if not refresh and not self._save_config(): return False
         return True
 
     # save auth tokens to file
-    def save_config(self):
+    def _save_config(self):
         config = {
-            "client_id" : self.client_id,
-            "client_secret" : self.client_secret,
-            "user_auth" : self.user_auth,
-            "user_refresh" : self.user_refresh
+            "client_id" : self._client_id,
+            "client_secret" : self._client_secret,
+            "user_auth" : self._user_auth,
+            "user_refresh" : self._user_refresh
         }
 
         try:
-            with open(self.config_file, 'w') as f:
+            with open(self._config_file, 'w') as f:
                 json.dump(config, f)
         except:
-            print(f"Unable to save your config file. Please manually enter the auth code {self.user_auth} in {self.config_file}")
+            print(f"Unable to save your config file. Please manually enter the auth code {self._user_auth} in {self._config_file}")
             return False
         return True
 ###
@@ -140,14 +142,14 @@ class SpotifyApi:
 ###
 
     # request wrapper function to add access key refresh when needed
-    def auth_request(self, method, endpoint, **kwargs):
-        if True if self.expires is None else (datetime.datetime.now() > self.expires): self.refresh()
+    def _auth_request(self, method, endpoint, **kwargs):
+        if True if self._expires is None else (datetime.datetime.now() > self._expires): self._refresh()
 
         headers = {
-            'Authorization' : f'Bearer {self.user_access}'
+            'Authorization' : f'Bearer {self._user_access}'
         }
 
-        return requests.request(method, self.api_url+endpoint, headers=headers, **kwargs)
+        return requests.request(method, self._api_url+endpoint, headers=headers, **kwargs)
 
 ###
 ###  implementation of spotify functions
@@ -257,14 +259,22 @@ class SpotifyApi:
     def get_me(self):
         endpoint = '/v1/me'
 
-        response = self.auth_request('GET', endpoint)
+        response = self._auth_request('GET', endpoint)
 
-        return endpoint, response
+        if not response.ok:
+            print(f"Error: Call to {endpoint} returned with status code {response.status_code}. Full response:\n{response.text}")
+            return False
+
+        return so.User(**json.loads(response.content))
 
     # Get public profile information about a Spotify user.
     def get_user(self, user_id):
         endpoint = f'/v1/users/{user_id}'
 
-        response = self.auth_request('GET', endpoint)
+        response = self._auth_request('GET', endpoint)
 
-        return endpoint, response
+        if not response.ok:
+            print(f"Error: Call to {endpoint} returned with status code {response.status_code}. Full response:\n{response.text}")
+            return False
+
+        return so.User(**json.loads(response.content))

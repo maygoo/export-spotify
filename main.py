@@ -16,5 +16,5 @@ if __name__ == "__main__":
         sys.exit()
 
     # calling all api functions
-    print_response(*api.me())
-    print_response(*api.user('tzpug32uzycy3ldd9xacoj0xz')) # follow me on spotify ;)
+    print(api.get_me())
+    print(api.get_user('tzpug32uzycy3ldd9xacoj0xz')) # follow me on spotify ;)
