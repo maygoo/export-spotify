@@ -19,6 +19,9 @@ class SpotifyApi:
         self.user_access = None
         # internal timer kept for refresh key
         self.expires = None
+###
+### oauth2 flow
+###
 
     # requests a user authorisation code, prompts user to login
     def auth(self, force=False):
@@ -116,6 +119,7 @@ class SpotifyApi:
         if not refresh and not self.save_config(): return False
         return True
 
+    # save auth tokens to file
     def save_config(self):
         config = {
             "client_id" : self.client_id,
@@ -131,6 +135,9 @@ class SpotifyApi:
             print(f"Unable to save your config file. Please manually enter the auth code {self.user_auth} in {self.config_file}")
             return False
         return True
+###
+### requests
+###
 
     # request wrapper function to add access key refresh when needed
     def auth_request(self, method, endpoint, **kwargs):
@@ -146,13 +153,108 @@ class SpotifyApi:
 ###  implementation of spotify functions
 ###
 
+## albums
+# Get Multiple Albums
+# Get an Album
+# Get an Album's Tracks
+
+## artists
+# Get Multiple Artists
+# Get an Artist
+# Get an Artist's Top Tracks
+# Get an Artist's Related Artists
+# Get an Artist's Albums
+
+## browse
+# Get All New Releases
+# Get All Featured Playlists
+# Get All Categories
+# Get a Category
+# Get a Category's Playlists
+# Get Recommendations
+# Get Recommendation Genres
+
+## episodes
+# Get Multiple Episodes
+# Get an Episode
+
+## follow
+# Follow a Playlist
+# Unfollow Playlist
+# Check if Users Follow a Playlist
+# Get User's Followed Artists
+# Follow Artists or Users
+# Unfollow Artists or Users
+# Get Following State for Artists/Users
+
+## library
+# Get User's Saved Albums
+# Save Albums for Current User
+# Remove Albums for Current User
+# Check User's Saved Albums
+# Get User's Saved Tracks
+# Save Tracks for User
+# Remove User's Saved Tracks
+# Check User's Saved Tracks
+# Get User's Saved Shows
+# Save Shows for Current User
+# Remove User's Saved Shows
+# Check User's Saved Shows
+
+## personalisation
+# Get a User's Top Artists and Tracks
+
+## player
+# Get Information About The User's Current Playback
+# Transfer a User's Playback
+# Get a User's Available Devices
+# Get the User's Currently Playing Track
+# Start/Resume a User's Playback
+# Pause a User's Playback
+# Skip User’s Playback To Next Track
+# Skip User’s Playback To Previous Track
+# Seek To Position In Currently Playing Track
+# Set Repeat Mode On User’s Playback
+# Set Volume For User's Playback
+# Toggle Shuffle For User’s Playback
+# Get Current User's Recently Played Tracks
+# Add an item to queue
+
+## playlists
+# Get a List of Current User's Playlists
+# Get a List of a User's Playlists
+# Create a Playlist
+# Get a Playlist
+# Change a Playlist's Details
+# Get a Playlist's Items
+# Add Items to a Playlist
+# Reorder or Replace a Playlist's Items
+# Remove Items from a Playlist
+# Get a Playlist Cover Image
+# Upload a Custom Playlist Cover Image
+
+## search
+# Search for an Item
+
+## shows
+# Get Multiple Shows
+# Get a Show
+# Get a Show's Episodes
+
+## tracks
+# Get Several Tracks
+# Get a Track
+# Get Audio Features for Several Tracks
+# Get Audio Features for a Track
+# Get Audio Analysis for a Track
+
 ## user profile
 # todo create and return user objects 
 
     # Get detailed profile information about the current user (including the current user’s username).
     # scopes used:  user-read-email     (opt)
     #               user-read-private   (opt)
-    def me(self):
+    def get_me(self):
         endpoint = '/v1/me'
 
         response = self.auth_request('GET', endpoint)
@@ -160,7 +262,7 @@ class SpotifyApi:
         return endpoint, response
 
     # Get public profile information about a Spotify user.
-    def user(self, user_id):
+    def get_user(self, user_id):
         endpoint = f'/v1/users/{user_id}'
 
         response = self.auth_request('GET', endpoint)
