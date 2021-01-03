@@ -1,4 +1,4 @@
-from spotify_api import SpotifyApi
+from spotify.api import SpotifyApi
 import sys
 
 # driver file for project

@@ -2,8 +2,7 @@ import requests
 import webbrowser
 import json
 import datetime
-import spotify_objects as so
-
+import spotify.objects as so
 # handles api requests
 
 class SpotifyApi:
