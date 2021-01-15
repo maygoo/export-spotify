@@ -1,4 +1,5 @@
 from spotify.api import SpotifyApi
+from spotify.auth import User
 import sys
 
 # driver file for project
@@ -11,9 +12,9 @@ def print_response(endpoint, response):
 
 if __name__ == "__main__":
     config_file = 'config.json'
-    api = SpotifyApi(config_file)
-    if not api.auth():
+    if not (user := User(config_file)).auth():
         sys.exit()
+    api = SpotifyApi(user)
 
     # calling all api functions
     print(api.get_me())

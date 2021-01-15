@@ -1,4 +1,4 @@
-### contains all the 
+# TODO write docstrings
 
 # AlbumObject
 # AlbumRestrictionObject

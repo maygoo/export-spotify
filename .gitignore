@@ -3,3 +3,6 @@ config.json
 
 # python files
 __pycache__/
+
+# vscode files
+.vscode/
