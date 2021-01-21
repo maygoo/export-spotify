@@ -2,7 +2,27 @@
 
 # AlbumObject
 # AlbumRestrictionObject
-# ArtistObject
+
+class Artist:
+    # apparently these four attributes are part of the object according to spotify, but not given
+    def __init__(self, *, external_urls, followers=None, genres=None, href, images=None, name, popularity=None, uri, **kwargs):
+        self.external_urls = ExternalUrl(**external_urls)
+        self.followers = Followers(**followers) if followers else None
+        self.genres = genres
+        self.href = href
+        self.id = kwargs['id']
+        self.images = images
+        self.name = name
+        self.popularity = popularity
+        self.type = kwargs['type']
+        self.uri = uri
+
+    def __str__(self):
+        # these attributes are unused by spotify ??
+        if self.followers or self.genres or self.images or self.popularity:
+            return f'{self.name.encode("utf-8")} DEBUG {self.followers} {self.genres} {self.images} {self.popularity}'
+        return f'{self.name.encode("utf-8")}'
+
 # AudioFeaturesObject
 # CategoryObject
 # ContextObject
@@ -117,7 +137,7 @@ class SimplifiedAlbum:
 class Track:
     def __init__(self, *, album, artists, available_markets, disc_number, duration_ms, explicit, external_ids, external_urls, href, is_playable=None, linked_from=None, name, popularity, preview_url, restrictions=None, track_number, uri, **kwargs):
         self.album = SimplifiedAlbum(**album)
-        self.artists = artists # TODO array of artist objects
+        self.artists = [Artist(**a) for a in artists]
         self.available_markets = available_markets
         self.disc_number = disc_number
         self.duration_ms = duration_ms
@@ -137,7 +157,7 @@ class Track:
         self.uri = uri
 
     def __str__(self):
-        return f'{self.name} by {self.artists} available at {self.external_urls}'
+        return f'{self.name.encode("utf-8")} by {self.artists} available at {self.external_urls}'
 
 # TrackRestrictionObject
 # TuneableTrackObject
