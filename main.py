@@ -25,7 +25,7 @@ def get_library_all(api: SpotifyApi):
         paging = api.get_library(offset)
     paged_items = [st.track for st in paging.items]
     library += paged_items
-    
+
     print(f"Done. Collected {len(library)} songs.")
     for i in library: print(i)
 
@@ -35,7 +35,7 @@ if __name__ == "__main__":
         sys.exit()
     api = SpotifyApi(user)
 
-    # calling all api functions
     print(api.get_me())
     
-    get_full_library(api)
+    #get_full_library(api)
+    print(api.get_artist('0LIll5i3kwo5A3IDpipgkS'))

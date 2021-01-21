@@ -4,7 +4,11 @@
 # AlbumRestrictionObject
 
 class Artist:
-    # apparently these four attributes are part of the object according to spotify, but not given
+    # there seems to be some misalignment: returning the artists from a track
+    # request does not use the attributes: followers, genres, images, popularity.
+    # however a get artist request _does_ return these attributes.
+    # if I had a twitter account maybe I'd message their dev twitter, otherwise
+    # TODO add an ArtistLite object or something
     def __init__(self, *, external_urls, followers=None, genres=None, href, images=None, name, popularity=None, uri, **kwargs):
         self.external_urls = ExternalUrl(**external_urls)
         self.followers = Followers(**followers) if followers else None
@@ -18,9 +22,6 @@ class Artist:
         self.uri = uri
 
     def __str__(self):
-        # these attributes are unused by spotify ??
-        if self.followers or self.genres or self.images or self.popularity:
-            return f'{self.name.encode("utf-8")} DEBUG {self.followers} {self.genres} {self.images} {self.popularity}'
         return f'{self.name.encode("utf-8")}'
 
 # AudioFeaturesObject

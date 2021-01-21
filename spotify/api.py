@@ -34,7 +34,14 @@ class SpotifyApi:
 
 ## artists
 # Get Multiple Artists
-# Get an Artist
+
+    def get_artist(self, idx):
+        endpoint = f'/v1/artists/{idx}'
+
+        response = self._auth_request('GET', endpoint)
+
+        return so.Artist(**json.loads(response.content)) if response else False
+
 # Get an Artist's Top Tracks
 # Get an Artist's Related Artists
 # Get an Artist's Albums
