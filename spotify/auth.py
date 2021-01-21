@@ -100,8 +100,6 @@ class User:
 
         response = requests.request('POST', self._auth_url+endpoint, data=body)
 
-        print(response.text)
-
         if not response.ok:
             raise AccessError(response)
         
@@ -109,13 +107,6 @@ class User:
         if initial: 
             self._user_refresh = content['refresh_token']
         self._user_access = content['access_token']
-
-        print()
-        print('inside auth')
-        print(self._user_auth)
-        print(self._user_refresh)
-        print(self._user_access)
-        print()
 
         # get new refresh key 1 minute before it expires
         duration = datetime.timedelta(seconds=int(content['expires_in']) - 60)

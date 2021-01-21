@@ -15,10 +15,6 @@ class SpotifyApi:
             'Authorization' : f'Bearer {self._auth.get_access()}'
         }
 
-        print()
-        print(self._auth._user_access)
-        print()
-
         response = requests.request(method, self._api_url+endpoint, headers=headers, **kwargs)
 
         if not response.ok:
