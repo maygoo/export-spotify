@@ -70,7 +70,7 @@ class User:
         webbrowser.open(url)
         print("Please sign in to your spotify account and allow the permissions")
         print("You will be redirected to a page that is unable to load")
-        self._user_auth = input("Please copy the url of this page, and paste the part after 'https://localhost/?code=code=' here:\n")
+        self._user_auth = input("Please copy the url of this page, and paste the part after 'https://localhost/?code=' here:\n")
         print("This authorisation code is being saved to your config file")
 
         if not self._save_config(): return False
