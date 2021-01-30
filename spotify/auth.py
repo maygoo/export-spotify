@@ -8,9 +8,8 @@ import requests
 
 class User:
     _auth_url = 'https://accounts.spotify.com'
-    _redirect = 'https://localhost/' # incorporate into github.io page
 
-    def __init__(self, config_file=None):
+    def __init__(self, config_file=None, redirect='https://maygoo.github.io/music/'):
         """Create auth object from given file. If no file is given, prompt user for info."""
         self._config_file = config_file
         self._client_id = None
@@ -18,6 +17,7 @@ class User:
         self._user_auth = None
         self._user_refresh = None
         self._user_access = None
+        self._redirect = redirect
         # internal timer kept for refresh key
         self._expires = None
 
@@ -58,7 +58,8 @@ class User:
         query = {
             'client_id' : self._client_id,
             'response_type' : 'code',
-            'redirect_uri' : User._redirect,
+            'redirect_uri' : self._redirect,
+            'state' : 'spotify',
             'scope' : '+'.join(scopes)
         }
 
@@ -69,8 +70,7 @@ class User:
         print(f"Opening up a browser\nIf nothing happens for a few moments, please manually visit the url: {url}")
         webbrowser.open(url)
         print("Please sign in to your spotify account and allow the permissions")
-        print("You will be redirected to a page that is unable to load")
-        self._user_auth = input("Please copy the url of this page, and paste the part after 'https://localhost/?code=' here:\n")
+        self._user_auth = input(f"You will be redirected to {self._redirect}, please copy the code and paste it here:\n")
         print("This authorisation code is being saved to your config file")
 
         if not self._save_config(): return False
@@ -92,7 +92,7 @@ class User:
         if initial:
             body['grant_type'] = 'authorization_code'
             body['code'] = self._user_auth
-            body['redirect_uri'] = User._redirect
+            body['redirect_uri'] = self._redirect
         else:
             body['grant_type'] = 'refresh_token'
             body['refresh_token'] = self._user_refresh
