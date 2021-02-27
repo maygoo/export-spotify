@@ -42,7 +42,11 @@ class ExplicitContentSettings:
     def __str__(self):
         return 'blocked' if self.filter_enabled else 'not blocked' 
 
-# ExternalIdObject
+class ExternalID:
+    def __init__(self, ean=None, isrc=None, upc=None):
+        self.ean = ean # International Article Number
+        self.isrc = isrc # International Standard Recording Code
+        self.upc = upc # Universal Product Code
 
 class ExternalUrl:
     def __init__(self, **kwargs):
@@ -143,7 +147,7 @@ class Track:
         self.disc_number = disc_number
         self.duration_ms = duration_ms
         self.explicit = explicit
-        self.external_ids = external_ids # TODO external id object
+        self.external_ids = ExternalID(**external_ids)
         self.external_urls = ExternalUrl(**external_urls)
         self.href = href
         self.id = kwargs['id']
@@ -152,7 +156,7 @@ class Track:
         self.name = name
         self.popularity = popularity
         self.preview_url = preview_url
-        self.restrictions = restrictions # TODO restriction object / only if restrictions is enabled
+        self.restrictions = TrackRestriction(restrictions)
         self.track_number = track_number
         self.type = kwargs['type']
         self.uri = uri
@@ -160,5 +164,8 @@ class Track:
     def __str__(self):
         return f'{self.name.encode("utf-8")} by {self.artists} available at {self.external_urls}'
 
-# TrackRestrictionObject
+class TrackRestriction:
+    def __init__(self, reason):
+        self.reason = reason # one of: market, product or explicit
+
 # TuneableTrackObject
