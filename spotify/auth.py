@@ -35,6 +35,7 @@ class User:
         except Exception as e:
             print(e)
             print(f"Error: unable to read config file '{self._config_file}'")
+            return False
             # TODO manual input
 
         if self._user_refresh: return self._refresh()
