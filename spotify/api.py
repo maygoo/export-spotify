@@ -142,7 +142,14 @@ class SpotifyApi:
 
 ## tracks
 # Get Several Tracks
-# Get a Track
+
+    def get_track(self, track_id):
+        endpoint = f'/v1/tracks/{track_id}'
+
+        response = self._auth_request('GET', endpoint)
+
+        return so.Track(**json.loads(response.content)) if response else False
+
 # Get Audio Features for Several Tracks
 # Get Audio Features for a Track
 # Get Audio Analysis for a Track
