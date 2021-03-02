@@ -7,7 +7,21 @@ import sys, os, csv, argparse
 # driver file for project
 
 def track_to_csv(track: Track):
-    print(track.name)
+    return [track.name, str(track.album), ' & '.join([str(a) for a in track.artists]), track.href, track.external_ids.ean, track.external_ids.isrc, track.external_ids.upc]
+
+def songlist_to_csv(songlist):
+    return [track_to_csv(t) for t in songlist]
+
+def write_to_file(filename, csvlist):
+    header = ['name','album','artists','href','ean','isrc','upc']
+
+    print(f"Writing {len(csvlist)} songs to {filename}.")
+
+    with open(filename, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        writer.writerow(header)
+        writer.writerows(csvlist)
+    print("Done.")
 
 def get_library_all(api: SpotifyApi):
     library = []
@@ -24,7 +38,8 @@ def get_library_all(api: SpotifyApi):
     library += paged_items
 
     print(f"Done. Collected {len(library)} songs.")
-    for i in library: track_to_csv(i)
+    
+    return library
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -42,6 +57,6 @@ if __name__ == "__main__":
     api = SpotifyApi(user)
 
     #print(api.get_me())
-    #get_library_all(api)
-    track = api.get_track('6EOKwO6WaLal58MSsi6U4W')
-    track_to_csv(track)
+    #track = api.get_track('6EOKwO6WaLal58MSsi6U4W')
+    library = get_library_all(api)
+    write_to_file(args.outfile, songlist_to_csv(library))

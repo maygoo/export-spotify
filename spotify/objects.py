@@ -22,7 +22,8 @@ class Artist:
         self.uri = uri
 
     def __str__(self):
-        return f'{self.name.encode("utf-8")}'
+        #return f'{self.name.encode("utf-8")}'
+        return self.name
 
 # AudioFeaturesObject
 # CategoryObject
@@ -131,9 +132,13 @@ class SimplifiedAlbum:
         self.href = href
         self.id = kwargs['id']
         self.images = images # unimplemented
+        self.name = name
         self.restrictions = restrictions # TODO restriction object / only when restriction is applied
         self.type = kwargs['type']
         self.uri = uri
+
+    def __str__(self):
+        return self.name if self.album_type != 'single' else ''
 
 # SimplifiedEpisodeObject
 # SimplifiedShowObject
