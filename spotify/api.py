@@ -29,8 +29,26 @@ class SpotifyApi:
 
 ## albums
 # Get Multiple Albums
-# Get an Album
-# Get an Album's Tracks
+
+    def get_album(self, idx):
+        endpoint = f'/v1/albums/{idx}'
+
+        response = self._auth_request('GET', endpoint)
+
+        return so.Album(**json.loads(response.content)) if response else False
+
+    def get_album_tracks(self, idx, limit=50, offset=0):
+        idx, offset = idx # need to unpack like this because of how I de_page
+        endpoint = f'/v1/albums/{idx}/tracks'
+
+        query = {
+            'offset' : offset,
+            'limit' : limit
+        }
+
+        response = self._auth_request('GET', endpoint, params=query)
+
+        return so.Paging(**json.loads(response.content), object_type='track') if response else False
 
 ## artists
 # Get Multiple Artists
@@ -70,6 +88,20 @@ class SpotifyApi:
 
 ## library
 # Get User's Saved Albums
+
+    #Get a list of the albums saved in the current Spotify user’s ‘Your Music’ library.
+    def get_saved_albums(self, offset=0, limit=50):
+        endpoint = '/v1/me/albums'
+
+        query = {
+            'offset' : offset,
+            'limit' : limit
+        }
+
+        response = self._auth_request('GET', endpoint, params=query)
+
+        return so.Paging(**json.loads(response.content), object_type='saved_album') if response else False
+
 # Save Albums for Current User
 # Remove Albums for Current User
 # Check User's Saved Albums
@@ -86,7 +118,7 @@ class SpotifyApi:
 
         response = self._auth_request('GET', endpoint, params=query)
 
-        return so.Paging(**json.loads(response.content)) if response else False
+        return so.Paging(**json.loads(response.content), object_type='saved_track') if response else False
         
 
 # returns an array of saved track objects
@@ -121,6 +153,9 @@ class SpotifyApi:
 
 ## playlists
 # Get a List of Current User's Playlists
+
+    # TODO get all playlists and get all songs from all playlists
+
 # Get a List of a User's Playlists
 # Create a Playlist
 # Get a Playlist
@@ -148,7 +183,7 @@ class SpotifyApi:
 
         response = self._auth_request('GET', endpoint)
 
-        return so.Track(**json.loads(response.content)) if response else False
+        return so.Track(**json.loads(response.content), json=json.loads(response.content)) if response else False
 
 # Get Audio Features for Several Tracks
 # Get Audio Features for a Track
