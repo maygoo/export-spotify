@@ -7,10 +7,10 @@ import sys, os, csv, argparse
 # driver file for project
 
 def track_to_csv(track: Track):
-    return [track.name, str(track.album), ' & '.join([str(a) for a in track.artists]), track.href, track.external_ids.ean, track.external_ids.isrc, track.external_ids.upc]
+    return (track.name, str(track.album), ' & '.join([str(a) for a in track.artists]), track.href, track.external_ids.ean, track.external_ids.isrc, track.external_ids.upc)
 
 def songlist_to_csv(songlist):
-    return [track_to_csv(t) for t in songlist]
+    return set([track_to_csv(t) for t in songlist]) # removes duplicates
 
 def write_to_file(filename, csvlist):
     header = ['name','album','artists','href','ean','isrc','upc']
@@ -49,7 +49,7 @@ def fix_album_songlist(api, songlist):
     # to add album and external id attributes
     new_songlist = []
     for i in songlist:
-        new_songlist.append(api.get_track(i.id))
+        new_songlist.append(api.get_track(i.id)) # TODO get tracks in bulk to speed this up
     return new_songlist
 
 def get_library_all(api):
@@ -93,4 +93,5 @@ if __name__ == "__main__":
     album_songlist = fix_album_songlist(api, get_songlist_from_albums(api))
     
     full_songlist = library + album_songlist
+    print(len(full_songlist))
     write_to_file(args.outfile, songlist_to_csv(full_songlist))
