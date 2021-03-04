@@ -3,7 +3,7 @@
 class Album:
     def __init__(self, *, album_type, artists, available_markets, copyrights, external_ids, external_urls, genres, href, images, label, name, popularity, release_date, release_date_precision, restrictions=None, tracks, uri, **kwargs):
         self.album_type = album_type
-        self.artists = [Artist(**a) for a in artists]
+        self.artists = [SimplifiedArtist(**a) for a in artists]
         self.available_markets = available_markets
         self.copyrights = copyrights
         self.external_ids = ExternalID(**external_ids)
@@ -28,12 +28,7 @@ class Album:
 # AlbumRestrictionObject
 
 class Artist:
-    # there seems to be some misalignment: returning the artists from a track
-    # request does not use the attributes: followers, genres, images, popularity.
-    # however a get artist request _does_ return these attributes.
-    # if I had a twitter account maybe I'd message their dev twitter, otherwise
-    # TODO add an ArtistLite object or something
-    def __init__(self, *, external_urls, followers=None, genres=None, href, images=None, name, popularity=None, uri, **kwargs):
+    def __init__(self, *, external_urls, followers, genres, href, images, name, popularity, uri, **kwargs):
         self.external_urls = ExternalUrl(**external_urls)
         self.followers = Followers(**followers) if followers else None
         self.genres = genres
@@ -173,12 +168,21 @@ class SimplifiedAlbum:
     def __str__(self):
         return self.name if self.album_type != 'single' else ''
 
+class SimplifiedArtist:
+    def __init__(self, *, external_urls, href, name, uri, **kwargs):
+        self.external_urls = ExternalUrl(**external_urls)
+        self.href = href
+        self.id = kwargs['id']
+        self.name = name
+        self.type = kwargs['type']
+        self.uri = uri
+
 # SimplifiedEpisodeObject
 # SimplifiedShowObject
 
 class SimlpifiedTrack:
     def __init__(self, *, artists, available_markets, disc_number, duration_ms, explicit, external_urls, href, is_local, is_playable=None, linked_from=None, name, preview_url, restrictions=None, track_number, uri, **kwargs):
-        self.artists = [Artist(**a) for a in artists]
+        self.artists = [SimplifiedArtist(**a) for a in artists]
         self.available_markets = available_markets
         self.disc_number = disc_number
         self.duration_ms = duration_ms
@@ -199,7 +203,7 @@ class SimlpifiedTrack:
 class Track:
     def __init__(self, *, album, artists, available_markets, disc_number, duration_ms, explicit, external_ids, external_urls, href, is_local, is_playable=None, linked_from=None, name, popularity, preview_url, restrictions=None, track_number, uri, json=None, **kwargs):
         self.album = SimplifiedAlbum(**album)
-        self.artists = [Artist(**a) for a in artists]
+        self.artists = [SimplifiedArtist(**a) for a in artists]
         self.available_markets = available_markets
         self.disc_number = disc_number
         self.duration_ms = duration_ms

@@ -7,7 +7,7 @@ import sys, os, csv, argparse
 # driver file for project
 
 def track_to_csv(track: Track):
-    return (track.name, str(track.album), ' & '.join([str(a) for a in track.artists]), track.href, track.external_ids.ean, track.external_ids.isrc, track.external_ids.upc)
+    return (track.name, str(track.album), ' & '.join([str(a) for a in track.artists]), track.href, track.external_ids.ean, track.external_ids.isrc, track.external_ids.upc) # needs to be a tuple for casting to set
 
 def songlist_to_csv(songlist):
     return set([track_to_csv(t) for t in songlist]) # removes duplicates
@@ -72,6 +72,7 @@ def de_paging(source, paging, album=False):
         paging = source(offset)
     paged_items = paging.items
     out += paged_items
+    
     return out
 
 if __name__ == "__main__":
