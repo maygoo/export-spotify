@@ -176,7 +176,18 @@ class SpotifyApi:
 # Get a Show's Episodes
 
 ## tracks
-# Get Several Tracks
+
+    def get_several_tracks(self, track_ids):
+        endpoint = '/v1/tracks'
+
+        query = {
+            'ids' : ','.join(track_ids)
+        }
+
+        response = self._auth_request('GET', endpoint, params=query)
+
+        return [so.Track(**t) for t in json.loads(response.content)['tracks']] if response else False
+
 
     def get_track(self, track_id):
         endpoint = f'/v1/tracks/{track_id}'

@@ -1,6 +1,6 @@
 from spotify.api import SpotifyApi
 from spotify.auth import User
-from spotify.objects import Track
+from spotify.objects import Paging, SimlpifiedTrack, Track
 from urllib.parse import urlparse, parse_qs
 import sys, os, csv, argparse
 
@@ -32,7 +32,7 @@ def get_all_albums(api: SpotifyApi):
     print(f"Done. Collected {len(albums)} albums.")
     return albums
 
-def get_songlist_from_albums(api):
+def get_songlist_from_albums(api: SpotifyApi):
     albums = get_all_albums(api)
     songlist = []
     for i in albums:
@@ -44,15 +44,20 @@ def get_songlist_from_albums(api):
 
     return songlist
 
-def fix_album_songlist(api, songlist):
-    # make each simple track into track
+def fix_album_songlist(api: SpotifyApi, songlist):
+    # get a track for each simple track
     # to add album and external id attributes
+    print(f"Getting full track information for {len(songlist)} album tracks.")
     new_songlist = []
-    for i in songlist:
-        new_songlist.append(api.get_track(i.id)) # TODO get tracks in bulk to speed this up
+    size = 50
+    ids = [t.id for t in songlist]
+    pages = int(len(ids) / size) + 1 if len(ids) % size != 0 else 0
+    for i in range(pages):
+        new_songlist += api.get_several_tracks(ids[i*size:i*size+size])
+    print("Done")
     return new_songlist
 
-def get_library_all(api):
+def get_library_all(api: SpotifyApi):
     paging = api.get_library()
     print(f"Collecting all {paging.total} liked songs...")
 
@@ -61,7 +66,7 @@ def get_library_all(api):
     print(f"Done. Collected {len(library)} songs.")
     return library
 
-def de_paging(source, paging, album=False):
+def de_paging(source, paging: Paging, album=False):
     out = []
 
     while paging.next:
@@ -72,7 +77,7 @@ def de_paging(source, paging, album=False):
         paging = source(offset)
     paged_items = paging.items
     out += paged_items
-    
+
     return out
 
 if __name__ == "__main__":

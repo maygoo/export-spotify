@@ -41,7 +41,6 @@ class Artist:
         self.uri = uri
 
     def __str__(self):
-        #return f'{self.name.encode("utf-8")}'
         return self.name
 
 # AudioFeaturesObject
@@ -176,6 +175,9 @@ class SimplifiedArtist:
         self.name = name
         self.type = kwargs['type']
         self.uri = uri
+
+    def __str__(self):
+        return self.name
 
 # SimplifiedEpisodeObject
 # SimplifiedShowObject
