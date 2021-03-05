@@ -18,7 +18,7 @@ class Album:
         self.release_date = release_date
         self.release_date_precision = release_date_precision
         self.restrictions = restrictions
-        self.tracks = Paging(**tracks, object_type='track') # spotify api docs fking lied this isn't an array of tracks
+        self.tracks = Paging(**tracks, object_type='simple_track') # spotify api docs lied this isn't an array of tracks
         self.type = kwargs['type']
         self.uri = uri
 
@@ -89,8 +89,9 @@ class Paging:
     def __init__(self, *, href, items, limit, offset, previous, total, object_type, **kwargs):
         if object_type == 'saved_track': saved_object = SavedTrack
         if object_type == 'saved_album': saved_object = SavedAlbum
-        if object_type == 'track' : saved_object = SimlpifiedTrack
-        if object_type == 'playlist' : saved_object = None # TODO playlist object
+        if object_type == 'simple_track' : saved_object = SimplifiedTrack
+        if object_type == 'playlist_track' : saved_object = PlaylistTrack
+        if object_type == 'playlist' : saved_object = SimplifiedPlaylist
 
         self.href = href
         self.items = [saved_object(**item) for item in items]
@@ -102,7 +103,20 @@ class Paging:
 
 # PlayHistoryObject
 # PlaylistObject
-# PlaylistTrackObject
+
+class PlaylistTrack:
+    def __init__(self, *, added_at, added_by, is_local, primary_color, video_thumbnail, track):
+        self.added_at = added_at
+        self.added_by = added_by
+        self.is_local = is_local
+        self.primary_color = primary_color # not on the api docs but is needed
+        self.video_thumbnail = video_thumbnail #
+        self.track = Track(**track)
+
+class PlaylistTracksRef:
+    def __init__(self, href, total):
+        self.href = href
+        self.total = int(total)
 
 class User:
     def __init__(self, *, display_name, external_urls, followers, href, images, uri, country=None, email=None, explicit_content={'filter_enabled':None,'filter_locked':None}, product=None, **kwargs):
@@ -150,7 +164,7 @@ class SavedTrack:
 # ShowObject
 
 class SimplifiedAlbum:
-    def __init__(self, *, album_group=None, album_type, artists, available_markets, external_urls, href, images, name, restrictions=None, uri, **kwargs):
+    def __init__(self, *, album_group=None, album_type, artists, available_markets=None, external_urls, href, images, name, restrictions=None, uri, **kwargs):
         self.album_group = album_group
         self.album_type = album_type
         self.artists = artists # TODO array of simplified artist object
@@ -179,10 +193,26 @@ class SimplifiedArtist:
     def __str__(self):
         return self.name
 
+class SimplifiedPlaylist:
+    def __init__(self, *, collaborative, description, external_urls, href, images, name, owner, public, snapshot_id, tracks, uri, **kwargs):
+        self.collaborative = bool(collaborative)
+        self.description = description
+        self.external_urls = ExternalUrl(**external_urls)
+        self.href = href
+        self.id = kwargs['id']
+        self.images = images
+        self.name = name
+        self.owner = owner
+        self.public = public
+        self.snapshot_id = snapshot_id
+        self.tracks = PlaylistTracksRef(**tracks)
+        self.type = kwargs['type']
+        self.uri = uri
+
 # SimplifiedEpisodeObject
 # SimplifiedShowObject
 
-class SimlpifiedTrack:
+class SimplifiedTrack:
     def __init__(self, *, artists, available_markets, disc_number, duration_ms, explicit, external_urls, href, is_local, is_playable=None, linked_from=None, name, preview_url, restrictions=None, track_number, uri, **kwargs):
         self.artists = [SimplifiedArtist(**a) for a in artists]
         self.available_markets = available_markets
@@ -203,7 +233,7 @@ class SimlpifiedTrack:
         self.uri = uri
 
 class Track:
-    def __init__(self, *, album, artists, available_markets, disc_number, duration_ms, explicit, external_ids, external_urls, href, is_local, is_playable=None, linked_from=None, name, popularity, preview_url, restrictions=None, track_number, uri, json=None, **kwargs):
+    def __init__(self, *, album, artists, available_markets=None, disc_number, duration_ms, explicit, external_ids, external_urls, href, is_local, is_playable=None, linked_from=None, name, popularity, preview_url, restrictions=None, track_number, uri, json=None, **kwargs):
         self.album = SimplifiedAlbum(**album)
         self.artists = [SimplifiedArtist(**a) for a in artists]
         self.available_markets = available_markets
@@ -227,7 +257,7 @@ class Track:
         self.json = json
 
     def __str__(self):
-        return f'{self.name} by {self.artists}.'
+        return f'{self.name} by {"&".join([str(a) for a in self.artists])}.'
 
 class TrackRestriction:
     def __init__(self, reason):

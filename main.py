@@ -1,6 +1,6 @@
 from spotify.api import SpotifyApi
 from spotify.auth import User
-from spotify.objects import Paging, SimlpifiedTrack, Track
+from spotify.objects import Paging, Track
 from urllib.parse import urlparse, parse_qs
 import sys, os, csv, argparse
 
@@ -44,6 +44,28 @@ def get_songlist_from_albums(api: SpotifyApi):
 
     return songlist
 
+def get_all_playlists(api: SpotifyApi):
+    paging = api.get_playlists()
+    print(f"Collecting all {paging.total} followed playlists...")
+
+    playlists = de_paging(api.get_playlists, api.get_playlists())
+
+    print(f"Done. Collected all {paging.total} playlists.")
+    return playlists
+
+def get_songlist_from_playlists(api: SpotifyApi):
+    playlists = get_all_playlists(api)
+    songlist = []
+    for i in playlists:
+        temp_list = []
+        paging = api.get_playlists_items((i.id, 0))
+        print(f"Collecting all {paging.total} songs from {i.name}...")
+        temp_list = de_paging(api.get_playlists_items, paging, i.id)
+        print(f"Done. Collected {len(temp_list)} songs.")
+        songlist += temp_list
+
+    return [pt.track for pt in songlist] # can probably do this faster
+
 def fix_album_songlist(api: SpotifyApi, songlist):
     # get a track for each simple track
     # to add album and external id attributes
@@ -54,7 +76,7 @@ def fix_album_songlist(api: SpotifyApi, songlist):
     pages = int(len(ids) / size) + 1 if len(ids) % size != 0 else 0
     for i in range(pages):
         new_songlist += api.get_several_tracks(ids[i*size:i*size+size])
-    print("Done")
+    print("Done.")
     return new_songlist
 
 def get_library_all(api: SpotifyApi):
@@ -73,7 +95,7 @@ def de_paging(source, paging: Paging, album=False):
         paged_items = paging.items
         out += paged_items
         offset = parse_qs(urlparse(paging.next).query)['offset']
-        offset = (album, offset) if album else offset # album paging awkwardness
+        offset = (album, offset) if album else offset # album and playlist paging awkwardness
         paging = source(offset)
     paged_items = paging.items
     out += paged_items
@@ -83,6 +105,7 @@ def de_paging(source, paging: Paging, album=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # TODO add options for exporting only library, playlists, etc
+    # TODO allow user to select which playlists to export
     parser.add_argument('outfile', help='file to export the song list to')
     args = parser.parse_args()
 
@@ -97,7 +120,8 @@ if __name__ == "__main__":
 
     library = get_library_all(api)
     album_songlist = fix_album_songlist(api, get_songlist_from_albums(api))
+    playlists_songlist = get_songlist_from_playlists(api)
     
-    full_songlist = library + album_songlist
+    full_songlist = library + album_songlist + playlists_songlist
     print(len(full_songlist))
     write_to_file(args.outfile, songlist_to_csv(full_songlist))

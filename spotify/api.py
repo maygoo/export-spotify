@@ -23,6 +23,13 @@ class SpotifyApi:
 
         return response
 
+    def temp(self):
+        headers = {
+            'Authorization' : f'Bearer {self._auth.get_access()}'
+        }
+
+        return requests.request('POST', 'https://api.spotify.com/v1/playlists/7pJMrgCm1Hu3kY72fktRrw/tracks', headers=headers)
+
 ###
 ###  implementation of spotify functions
 ###
@@ -48,7 +55,7 @@ class SpotifyApi:
 
         response = self._auth_request('GET', endpoint, params=query)
 
-        return so.Paging(**json.loads(response.content), object_type='track') if response else False
+        return so.Paging(**json.loads(response.content), object_type='simple_track') if response else False
 
 ## artists
 # Get Multiple Artists
@@ -152,15 +159,38 @@ class SpotifyApi:
 # Add an item to queue
 
 ## playlists
-# Get a List of Current User's Playlists
 
-    # TODO get all playlists and get all songs from all playlists
+    def get_playlists(self, offset=0, limit=50):
+        endpoint = '/v1/me/playlists'
+
+        query = {
+            'offset' : offset,
+            'limit' : limit
+        }
+
+        response = self._auth_request('GET', endpoint, params=query)
+
+        return so.Paging(**json.loads(response.content), object_type='playlist') if response else False
 
 # Get a List of a User's Playlists
 # Create a Playlist
 # Get a Playlist
 # Change a Playlist's Details
-# Get a Playlist's Items
+
+    def get_playlists_items(self, playlist_id, limit=50, offset=0):
+        playlist_id, offset = playlist_id # need to unpack like this because of how I de_page
+        endpoint = f'/v1/playlists/{playlist_id}/tracks'
+
+        query = {
+            'market' : 'from_token',
+            'offset' : offset,
+            'limit' : limit
+        }
+
+        response = self._auth_request('GET', endpoint, params=query)
+
+        return so.Paging(**json.loads(response.content), object_type='playlist_track') if response else False
+
 # Add Items to a Playlist
 # Reorder or Replace a Playlist's Items
 # Remove Items from a Playlist
